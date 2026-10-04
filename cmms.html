@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMMS · Maintenance Management</title>
+<style>
+  :root{
+    --navy:#0f2b46; --navy2:#16456e; --blue:#2e86c1; --teal:#17a589; --orange:#e67e22;
+    --red:#c0392b; --green:#1e8449; --purple:#8e44ad; --grey:#7f8c8d;
+    --line:#e2e8ef; --bg:#eef1f5; --card:#fff; --ink:#1f2a33; --muted:#6b7783;
+    --a:#1e8449; --b:#e67e22; --c:#7f8c8d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  button,input,select,textarea{font-family:inherit;font-size:14px}
+  a{color:var(--blue)}
+  .topbar{background:var(--navy);color:#fff;padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+  .brand .mk{width:32px;height:32px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;letter-spacing:.5px}
+  .brand small{display:block;font-weight:400;color:#b9cee0;font-size:11px}
+  .topbar .spacer{flex:1}
+  .who{display:flex;align-items:center;gap:9px;font-size:13px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+  .nav{background:#fff;border-bottom:1px solid var(--line);display:flex;gap:2px;padding:0 14px;overflow-x:auto}
+  .nav button{background:none;border:none;padding:13px 15px;cursor:pointer;color:var(--muted);font-weight:600;border-bottom:3px solid transparent;white-space:nowrap}
+  .nav button.active{color:var(--navy);border-bottom-color:var(--navy)}
+  .nav .cnt{background:var(--red);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:5px;font-weight:700}
+  .wrap{padding:20px;max-width:1320px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:18px;margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:16px;color:var(--navy)}
+  .card .desc{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .card h3{margin:16px 0 8px;font-size:14px;color:var(--navy)}
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:980px){.g4{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}}
+  @media(max-width:560px){.g4{grid-template-columns:1fr}}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:11px;padding:15px}
+  .kpi .v{font-size:26px;font-weight:700;color:var(--navy);line-height:1.1}
+  .kpi .l{font-size:11px;color:var(--muted);letter-spacing:.5px;margin-top:5px;text-transform:uppercase;font-weight:600}
+  .kpi .s{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .btn{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:9px 15px;cursor:pointer;font-weight:600}
+  .btn:hover{background:var(--navy2)}
+  .btn.sm{padding:5px 10px;font-size:12.5px}
+  .btn.ghost{background:#fff;color:var(--navy);border:1px solid #c7d9ea}
+  .btn.ghost:hover{background:#f0f6fc}
+  .btn.green{background:var(--teal)}.btn.green:hover{background:#128f76}
+  .btn.red{background:var(--red)}.btn.red:hover{background:#a5311f}
+  .btn.grey{background:var(--grey)}.btn.grey:hover{background:#6b7879}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+  .field label{font-size:12px;font-weight:600;color:var(--muted)}
+  .field input,.field select,.field textarea{padding:9px 10px;border:1px solid #cfd8e2;border-radius:8px;background:#fff;width:100%}
+  .field textarea{min-height:64px;resize:vertical}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--navy);color:#fff;text-align:left;padding:9px 9px;font-weight:600;white-space:nowrap}
+  td{border-bottom:1px solid var(--line);padding:9px 9px;vertical-align:top}
+  tr:nth-child(even) td{background:#fafcfe}
+  .tw{width:100%;overflow-x:auto}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+  .b-grey{background:#e6eaee;color:#546e7a}
+  .b-blue{background:#e3f0fa;color:#1c6ea4}
+  .b-orange{background:#fdf0e2;color:#b06012}
+  .b-red{background:#fdeaea;color:#a5311f}
+  .b-green{background:#e0f7ea;color:#1E8449}
+  .b-teal{background:#dcf5e6;color:#145A32}
+  .b-purple{background:#f2e9f9;color:#6d33a3}
+  .b-navy{background:#e3e9f0;color:#0f2b46}
+  .muted{color:var(--muted)}.small{font-size:12px}
+  .bar{height:18px;border-radius:5px;background:#e8edf3;overflow:hidden}
+  .bar>i{display:block;height:100%}
+  .modal-bg{position:fixed;inset:0;background:rgba(15,30,45,.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto;z-index:60}
+  .modal{background:#fff;border-radius:12px;width:100%;max-width:680px;padding:20px}
+  .modal h2{margin:0 0 12px;color:var(--navy);font-size:18px}
+  .toast{position:fixed;right:18px;bottom:18px;background:#12304a;color:#fff;padding:12px 16px;border-radius:9px;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:340px}
+  .empty{padding:26px;text-align:center;color:var(--muted);font-size:13px}
+  .crit-A{border-left:5px solid var(--a)}
+  .crit-B{border-left:5px solid var(--b)}
+  .crit-C{border-left:5px solid var(--c)}
+  .pill{display:inline-block;background:#eef3f8;border-radius:6px;padding:2px 8px;font-size:11.5px;margin:2px 4px 2px 0;color:#40515f}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+  @media(max-width:760px){.wrap{padding:13px 11px}.card{padding:13px}input,select,textarea{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar"></div>
+<div class="nav" id="nav"></div>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+   CMMS — Computerised Maintenance Management System
+   Single-file app. Data is stored in this browser (localStorage).
+   ========================================================================== */
+const LS='cmms_data_v1';
+
+const ASSET_STATUS=['Running','Idle','Down','Under Maintenance'];
+const CRIT=['A','B','C'];
+const WO_TYPES=['Corrective','Preventive','Predictive','Inspection','Emergency'];
+const WO_PRIORITY=['Critical','High','Medium','Low'];
+const WO_STATUS=['Open','Assigned','In Progress','On Hold','Completed','Closed'];
+const TRADES=['Mechanical','Electrical','Instrumentation','Civil'];
+const SHIFTS=['General','A','B','C'];
+const PM_FREQ=['Daily','Weekly','Monthly','Quarterly','Half-Yearly','Yearly'];
+
+const STATUS_COLOR={'Open':'b-red','Assigned':'b-orange','In Progress':'b-blue','On Hold':'b-grey','Completed':'b-green','Closed':'b-teal'};
+const PRIO_COLOR={'Critical':'b-red','High':'b-orange','Medium':'b-blue','Low':'b-grey'};
+const TYPE_COLOR={'Corrective':'b-orange','Preventive':'b-teal','Predictive':'b-purple','Inspection':'b-blue','Emergency':'b-red'};
+const ASSET_COLOR={'Running':'b-green','Idle':'b-grey','Down':'b-red','Under Maintenance':'b-orange'};
+const STATUS_HEX={'Open':'#C0392B','Assigned':'#E67E22','In Progress':'#2E86C1','On Hold':'#7F8C8D','Completed':'#1E8449','Closed':'#17A589'};
+
+/* ------------------------------- helpers -------------------------------- */
+const $=id=>document.getElementById(id);
+function uid(p){return p+Date.now().toString(36)+Math.floor(Math.random()*1000);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function dstr(off){const d=new Date();if(off)d.setDate(d.getDate()+off);const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function today(){return dstr(0);}
+function addFreq(dstrval,freq){
+  const d=new Date(dstrval+'T00:00:00');
+  if(freq==='Daily')d.setDate(d.getDate()+1);
+  else if(freq==='Weekly')d.setDate(d.getDate()+7);
+  else if(freq==='Monthly')d.setMonth(d.getMonth()+1);
+  else if(freq==='Quarterly')d.setMonth(d.getMonth()+3);
+  else if(freq==='Half-Yearly')d.setMonth(d.getMonth()+6);
+  else if(freq==='Yearly')d.setFullYear(d.getFullYear()+1);
+  const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function fmt(d){if(!d)return'—';const x=new Date(d+'T00:00:00');return x.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+function money(n){return '৳'+Math.round(+n||0).toLocaleString();}
+function asset(id){return DB.assets.find(a=>a.id===id)||{code:'—',name:'—',criticality:'C'};}
+function tech(id){return DB.techs.find(t=>t.id===id)||{name:'Unassigned'};}
+function badge(x,cls){return `<span class="badge ${cls}">${esc(x)}</span>`;}
+function critBadge(c){return badge(c+'-Critical','b-'+(c==='A'?'red':c==='B'?'orange':'grey'));}
+function toast(m){$('toast').innerHTML=`<div class="toast">${esc(m)}</div>`;setTimeout(()=>$('toast').innerHTML='',3200);}
+
+/* ------------------------------- data ----------------------------------- */
+function blankDB(){return {assets:[],workOrders:[],pmPlans:[],parts:[],techs:[],breakdowns:[],seq:{wo:1,asset:1,pm:1,part:1,tech:1},settings:{plantHoursPerDay:24}};}
+let DB, view='dashboard';
+
+function seed(){
+  const A=(id,code,name,category,location,manufacturer,model,serial,criticality,status,installDate,department)=>
+    ({id:id,code:code,name:name,category:category,location:location,manufacturer:manufacturer,model:model,serial:serial,criticality:criticality,status:status,installDate:installDate,department:department});
+  const assets=[
+    A('a1','EQ-001','Kiln Main Drive','Production','Kiln Area','FLSmidth','KMD-400','FLS-2018-001','A','Running','2018-03-15','Mechanical'),
+    A('a2','EQ-002','Raw Mill Gearbox','Production','Raw Mill','MAAG','CPU-22','MAAG-2017-114','A','Running','2017-11-02','Mechanical'),
+    A('a3','EQ-003','Cement Mill 1','Production','Cement Mill','Loesche','LM-46.4','LOE-2016-220','A','Running','2016-06-20','Mechanical'),
+    A('a4','EQ-004','Bag Filter Fan','Production','Kiln Area','ABB','BF-900','ABB-2019-333','B','Running','2019-01-10','Mechanical'),
+    A('a5','EQ-005','Packer Machine 1','Packer','Packing Plant','Haver','ROTO-8','HAV-2019-801','B','Running','2019-04-22','Mechanical'),
+    A('a6','EQ-006','Packer Machine 2','Packer','Packing Plant','Haver','ROTO-8','HAV-2019-802','B','Down','2019-04-22','Mechanical'),
+    A('a7','EQ-007','Air Compressor A','Utility','Compressor Room','Atlas Copco','GA-90','AC-2020-009','A','Running','2020-02-05','Mechanical'),
+    A('a8','EQ-008','Boiler Feed Pump','Power Plant','Boiler House','KSB','HGC-6','KSB-2018-077','A','Running','2018-09-14','Mechanical'),
+    A('a9','EQ-009','Coal Mill','Power Plant','Coal Mill','Loesche','LM-19.2','LOE-2017-119','A','Under Maintenance','2017-05-30','Mechanical'),
+    A('a10','EQ-010','Belt Conveyor CV-12','Production','Clinker Yard','Sempertrans','EP-800','SEMP-2018-612','B','Running','2018-08-08','Mechanical'),
+    A('a11','EQ-011','Cooling Tower Fan','Utility','Cooling Tower','SPX','CTF-12','SPX-2019-012','C','Running','2019-07-19','Mechanical'),
+    A('a12','EQ-012','Weighbridge','Dispatch','Main Gate','Avery Weigh-Tronix','BRIDGE-100','AWT-2015-100','C','Idle','2015-02-11','Electrical')
+  ];
+  const techs=[
+    {id:'t1',code:'TEC-001',name:'Rahim Uddin',trade:'Mechanical',shift:'General',phone:'01711-000001',active:true},
+    {id:'t2',code:'TEC-002',name:'Karim Mia',trade:'Mechanical',shift:'A',phone:'01711-000002',active:true},
+    {id:'t3',code:'TEC-003',name:'Jabbar Ali',trade:'Electrical',shift:'B',phone:'01711-000003',active:true},
+    {id:'t4',code:'TEC-004',name:'Selim Reza',trade:'Instrumentation',shift:'General',phone:'01711-000004',active:true},
+    {id:'t5',code:'TEC-005',name:'Nurul Islam',trade:'Mechanical',shift:'C',phone:'01711-000005',active:true},
+    {id:'t6',code:'TEC-006',name:'Ashraf Hossain',trade:'Electrical',shift:'General',phone:'01711-000006',active:true},
+    {id:'t7',code:'TEC-007',name:'Mizanur Rahman',trade:'Civil',shift:'A',phone:'01711-000007',active:true},
+    {id:'t8',code:'TEC-008',name:'Sohel Rana',trade:'Mechanical',shift:'B',phone:'01711-000008',active:true}
+  ];
+  // workOrder seed rows: [asset,title,type,prio,status,tech,createdOff,dueOff,doneOff,estHrs,actHrs,dtMin,parts,labor]
+  const W=[
+    ['a1','Replace kiln roller bearing','Corrective','High','Completed','t1',-12,-8,-9,8,9.5,240,45000,8000],
+    ['a2','Raw mill gearbox oil analysis','Predictive','Medium','Closed','t2',-30,-24,-25,4,4,0,6000,2500],
+    ['a3','Cement mill liner inspection','Inspection','Medium','Completed','t1',-9,-7,-7,6,5,0,0,3000],
+    ['a6','Packer 2 nozzle replacement','Corrective','Critical','In Progress','t5',-2,0,0,5,0,120,15000,0],
+    ['a9','Coal mill roller refurbishment','Corrective','High','In Progress','t2',-5,-1,0,12,0,300,85000,0],
+    ['a7','Air compressor overhaul','Preventive','High','Assigned','t8',-1,2,0,10,0,0,0,0],
+    ['a8','Boiler feed pump seal replacement','Corrective','High','Assigned','t5',-1,1,0,6,0,90,9000,0],
+    ['a10','Conveyor belt splice repair','Corrective','Medium','Open','',0,3,0,5,0,0,4000,0],
+    ['a4','Bag filter fan vibration check','Predictive','Medium','Open','',0,4,0,3,0,0,0,0],
+    ['a1','Kiln main drive PM','Preventive','High','Completed','t1',-28,-27,-27,4,4,0,1500,2000],
+    ['a2','Raw mill gearbox PM','Preventive','High','Completed','t2',-26,-25,-25,5,5.5,0,2500,2200],
+    ['a3','Cement mill PM','Preventive','High','Completed','t1',-24,-23,-24,6,6,0,3200,2600],
+    ['a7','Compressor PM service','Preventive','Medium','Completed','t8',-20,-19,-19,4,3.5,0,1800,1800],
+    ['a8','Feed pump PM service','Preventive','Medium','Completed','t5',-18,-17,-17,3,3,0,900,1500],
+    ['a11','Cooling tower fan PM','Preventive','Low','Completed','t8',-16,-15,-15,3,2.5,0,600,1200],
+    ['a5','Packer 1 PM service','Preventive','Medium','Completed','t5',-14,-13,-13,4,4,0,1100,1600],
+    ['a12','Weighbridge calibration','Inspection','Low','Completed','t4',-13,-12,-12,3,3,0,0,1200],
+    ['a1','Kiln shell temperature survey','Inspection','High','Completed','t4',-8,-6,-6,4,3,0,0,2000],
+    ['a9','Coal mill PM (overdue)','Preventive','High','Open','',-4,-2,0,6,0,0,0,0],
+    ['a6','Packer 2 electrical check','Corrective','High','Open','t3',-1,1,0,3,0,60,0,0],
+    ['a4','Bag filter bag replacement','Corrective','Medium','On Hold','t5',-6,-3,0,10,0,0,22000,0],
+    ['a3','Cement mill gearbox temp alarm','Emergency','Critical','Closed','t3',-40,-40,-38,7,8,360,12000,6500],
+    ['a8','Boiler feed pump impeller wear','Predictive','Medium','Closed','t5',-35,-32,-31,6,6,0,7000,3200],
+    ['a10','Conveyor roller greasing route','Preventive','Low','Completed','t2',-11,-10,-10,3,2.5,0,300,900]
+  ];
+  let wn=0;
+  const workOrders=W.map(r=>{
+    ++wn;
+    const created=dstr(r[6]),due=addFreq(dstr(r[6]),'Daily'); // placeholder replaced below
+    return {id:'w'+wn,code:'WO-'+String(wn).padStart(4,'0'),title:r[1],assetId:r[0],type:r[2],priority:r[3],
+      status:r[4],assigneeId:r[5]||'',reportedBy:'Operations',description:'',createdDate:dstr(r[6]),
+      dueDate:dstr(r[7]),completedDate:r[8]?dstr(r[8]):'',estHours:r[9],actualHours:r[10],
+      downtimeMins:r[11],partsCost:r[12],laborCost:r[13]};
+  });
+  const P=[
+    ['PM-001','a1','Kiln main drive lubrication & inspection','Monthly',-27,4,'t1'],
+    ['PM-002','a2','Raw mill gearbox service','Monthly',-25,5,'t2'],
+    ['PM-003','a3','Cement mill checklist','Monthly',-23,6,'t1'],
+    ['PM-004','a7','Compressor service & filter change','Monthly',-19,4,'t8'],
+    ['PM-005','a8','Feed pump alignment & seal check','Monthly',-17,3,'t5'],
+    ['PM-006','a9','Coal mill roller & liner check','Monthly',-2,6,'t2'],
+    ['PM-007','a5','Packer weighing calibration','Monthly',-13,4,'t5'],
+    ['PM-008','a11','Cooling tower fan bearing greasing','Quarterly',-15,3,'t8'],
+    ['PM-009','a4','Bag filter differential pressure check','Monthly',-6,3,'t5'],
+    ['PM-010','a10','Conveyor route inspection','Weekly',-10,3,'t2']
+  ];
+  let pn=0;
+  const pmPlans=P.map(r=>{++pn;return {id:'p'+pn,code:r[0],assetId:r[1],title:r[2],frequency:r[3],lastDone:dstr(r[4]),nextDue:addFreq(dstr(r[4]),r[3]),estHours:r[5],assigneeId:r[6],active:true,tasks:'Lubricate; inspect; record readings'};});
+  const parts=[
+    {id:'s1',code:'SP-001',name:'Roller Bearing 22320',category:'Bearings',uom:'Nos',stock:3,minStock:2,unitCost:12000,location:'Store A-12'},
+    {id:'s2',code:'SP-002',name:'Gear Oil ISO VG320',category:'Lubricants',uom:'Litre',stock:120,minStock:60,unitCost:420,location:'Store L-03'},
+    {id:'s3',code:'SP-003',name:'Air Filter GA-90',category:'Filters',uom:'Nos',stock:1,minStock:2,unitCost:6500,location:'Store F-07'},
+    {id:'s4',code:'SP-004',name:'Mechanical Seal 60mm',category:'Seals',uom:'Nos',stock:4,minStock:2,unitCost:9000,location:'Store S-02'},
+    {id:'s5',code:'SP-005',name:'V-Belt SPB-2360',category:'Belts',uom:'Nos',stock:10,minStock:6,unitCost:1800,location:'Store B-11'},
+    {id:'s6',code:'SP-006',name:'Packer Nozzle Assembly',category:'Packer',uom:'Nos',stock:2,minStock:2,unitCost:15000,location:'Store P-01'},
+    {id:'s7',code:'SP-007',name:'Conveyor Roller 120mm',category:'Conveyors',uom:'Nos',stock:18,minStock:10,unitCost:3500,location:'Store C-09'},
+    {id:'s8',code:'SP-008',name:'Contactor 40A',category:'Electrical',uom:'Nos',stock:0,minStock:3,unitCost:4200,location:'Store E-04'},
+    {id:'s9',code:'SP-009',name:'Thermocouple Type-K',category:'Instrument',uom:'Nos',stock:6,minStock:4,unitCost:2800,location:'Store I-05'},
+    {id:'s10',code:'SP-010',name:'Hydraulic Oil ISO VG68',category:'Lubricants',uom:'Litre',stock:45,minStock:40,unitCost:510,location:'Store L-01'}
+  ];
+  const B=[
+    ['a1',-9,240,'Bearing failure (worn cage)','Replaced roller bearing','w1','Mechanical'],
+    ['a6',-2,120,'Nozzle wear','Replacement in progress','w4','Mechanical'],
+    ['a9',-5,300,'Roller surface damage','Refurbishment in progress','w5','Mechanical'],
+    ['a3',-38,360,'Gearbox high temperature','Cooling circuit cleaned, oil changed','w22','Mechanical'],
+    ['a8',-31,0,'Impeller wear found in monitoring','Scheduled replacement','w23','Mechanical'],
+    ['a2',-50,90,'Oil contamination alarm','Oil flushed and replaced','','Lubrication'],
+    ['a7',-70,60,'High discharge temperature','Cooler cleaned','','Mechanical']
+  ];
+  let bn=0;
+  const breakdowns=B.map(r=>{
+    ++bn;
+    const start=Date.now()+r[1]*86400000;
+    return {id:'b'+bn,assetId:r[0],startTs:start,endTs:r[2]?start+r[2]*60000:null,mins:r[2],cause:r[3],action:r[4],workOrderId:r[5],category:r[6]};
+  });
+  return {assets:assets,techs:techs,workOrders:workOrders,pmPlans:pmPlans,parts:parts,breakdowns:breakdowns,
+    seq:{wo:wn+1,asset:assets.length+1,pm:pn+1,part:parts.length+1,tech:techs.length+1,breakdown:bn+1},
+    settings:{plantHoursPerDay:24}};
+}
+function load(){try{const raw=localStorage.getItem(LS);DB=raw?JSON.parse(raw):seed();}catch(e){DB=seed();}
+  ['assets','workOrders','pmPlans','parts','techs','breakdowns'].forEach(k=>{if(!Array.isArray(DB[k]))DB[k]=[];});
+  if(!DB.seq)DB.seq=blankDB().seq;if(!DB.settings)DB.settings={plantHoursPerDay:24};}
+function save(){try{localStorage.setItem(LS,JSON.stringify(DB));}catch(e){}}
+function resetDemo(){if(confirm('Reset all data back to the demo dataset?')){DB=seed();save();render();toast('Demo data restored.');}}
+
+/* ------------------------------- KPIs ----------------------------------- */
+function isOpen(w){return w.status!=='Completed'&&w.status!=='Closed';}
+function isOverdue(w){return isOpen(w)&&w.dueDate&&w.dueDate<today();}
+function periodDays(){return 90;}
+function kpis(){
+  const open=DB.workOrders.filter(isOpen).length;
+  const overdue=DB.workOrders.filter(isOverdue).length;
+  const down=DB.assets.filter(a=>a.status==='Down').length;
+  const maint=DB.assets.filter(a=>a.status==='Under Maintenance').length;
+  const totalDown=DB.breakdowns.reduce((s,b)=>s+(+b.mins||0),0);
+  const fails=DB.breakdowns.length;
+  const periodHrs=periodDays()*DB.settings.plantHoursPerDay;
+  const mttr=fails? (DB.breakdowns.reduce((s,b)=>s+(+b.mins||0),0)/fails/60) : 0;
+  const mtbf=fails? ((periodHrs - totalDown/60)/fails) : periodHrs;
+  const avail=periodHrs? ((periodHrs-totalDown/60)/periodHrs*100):100;
+  const pm=DB.workOrders.filter(w=>w.type==='Preventive');
+  const pmDone=pm.filter(w=>w.status==='Completed'||w.status==='Closed');
+  const pmCompliance=pm.length? Math.round(pmDone.length*100/pm.length):0;
+  const cost=DB.workOrders.reduce((s,w)=>s+(+w.partsCost||0)+(+w.laborCost||0),0);
+  return {open:open,overdue:overdue,down:down,maint:maint,mttr:mttr,mtbf:mtbf,avail:avail,pmCompliance:pmCompliance,cost:cost,assets:DB.assets.length,techs:DB.techs.length};
+}
+
+/* ------------------------------- shell ---------------------------------- */
+const TABS=[['dashboard','Dashboard'],['assets','Assets'],['workorders','Work Orders'],['pm','Preventive Maintenance'],
+  ['breakdowns','Breakdowns'],['parts','Spare Parts'],['techs','Technicians'],['reports','Reports']];
+function render(){
+  const k=kpis();
+  $('topbar').innerHTML=`
+    <div class="brand"><div class="mk">CMMS</div><div>Maintenance Management<small>Computerised Maintenance Management System</small></div></div>
+    <div class="spacer"></div>
+    <div class="who"><div class="avatar">MM</div><div>Maintenance Manager</div></div>
+    <button class="btn ghost sm" onclick="resetDemo()">Reset demo</button>`;
+  $('nav').innerHTML=TABS.map(([k2,l])=>{
+    let c=''; if(k2==='workorders'&&k.open)c=`<span class="cnt">${k.open}</span>`;
+    return `<button class="${view===k2?'active':''}" onclick="go('${k2}')">${l}${c}</button>`;
+  }).join('');
+  const body={dashboard:dashboardView,assets:assetsView,workorders:workOrdersView,pm:pmView,
+    breakdowns:breakdownsView,parts:partsView,techs:techsView,reports:reportsView}[view]();
+  $('app').innerHTML='<div class="wrap">'+body+'</div>';
+  wrapTables();
+}
+function go(v){view=v;render();}
+function wrapTables(){document.querySelectorAll('#app table').forEach(t=>{if(t.parentElement&&t.parentElement.classList.contains('tw'))return;const d=document.createElement('div');d.className='tw';t.parentNode.insertBefore(d,t);d.appendChild(t);});}
+function tag(x,cls){return badge(x,cls);}
+
+/* ------------------------------- charts --------------------------------- */
+function donut(pct,color,caption){
+  pct=Math.max(0,Math.min(100,pct));
+  return `<svg width="140" height="140" viewBox="0 0 42 42" style="display:block;margin:0 auto">
+    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e8edf3" stroke-width="6"></circle>
+    <circle cx="21" cy="21" r="15.9" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"
+      stroke-dasharray="${pct} ${100-pct}" stroke-dashoffset="25"></circle>
+    <text x="21" y="20" text-anchor="middle" dominant-baseline="middle" font-size="8.5" font-weight="700" fill="#0f2b46">${pct}%</text>
+    <text x="21" y="26.5" text-anchor="middle" font-size="3.2" fill="#6b7783">${esc(caption||'')}</text>
+  </svg>`;
+}
+function barChart(rows){ // rows:[{label,value,color}]
+  if(!rows.length)return '<div class="empty">No data.</div>';
+  const max=Math.max.apply(null,rows.map(r=>r.value))||1;
+  return rows.map(r=>`<div style="margin-bottom:10px">
+    <div class="small" style="display:flex;justify-content:space-between"><span>${esc(r.label)}</span><b>${r.value.toLocaleString()}</b></div>
+    <div class="bar"><i style="width:${Math.round(r.value*100/max)}%;background:${r.color||'#2E86C1'}"></i></div>
+  </div>`).join('');
+}
+
+/* ------------------------------ dashboard ------------------------------- */
+function dashboardView(){
+  const k=kpis();
+  const openByStatus=WO_STATUS.map(s=>({label:s,value:DB.workOrders.filter(w=>w.status===s).length,color:STATUS_HEX[s]})).filter(r=>r.value);
+  const dtByAsset={};
+  DB.breakdowns.forEach(b=>{dtByAsset[b.assetId]=(dtByAsset[b.assetId]||0)+(+b.mins||0);});
+  const dtRows=Object.keys(dtByAsset).map(id=>({label:asset(id).code+' · '+asset(id).name,value:Math.round(dtByAsset[id]/60*10)/10,color:'#C0392B'})).sort((a,b)=>b.value-a.value).slice(0,6);
+  const dueSoon=DB.pmPlans.filter(p=>p.active&&p.nextDue<=dstr(3)).sort((a,b)=>a.nextDue.localeCompare(b.nextDue));
+  const recent=DB.workOrders.slice().sort((a,b)=>b.createdDate.localeCompare(a.createdDate)).slice(0,8);
+  const overdueList=DB.workOrders.filter(isOverdue).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+  return `
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="kpi"><div class="v">${k.assets}</div><div class="l">Assets</div><div class="s">${k.down} down · ${k.maint} under maint.</div></div>
+    <div class="kpi"><div class="v" style="color:${k.open?'#C0392B':'#1E8449'}">${k.open}</div><div class="l">Open Work Orders</div><div class="s">${k.overdue} overdue</div></div>
+    <div class="kpi"><div class="v" style="color:#2E86C1">${k.mtbf.toFixed(0)} h</div><div class="l">MTBF</div><div class="s">MTTR ${k.mttr.toFixed(1)} h</div></div>
+    <div class="kpi"><div class="v" style="color:${k.avail>=95?'#1E8449':'#E67E22'}">${k.avail.toFixed(1)}%</div><div class="l">Availability</div><div class="s">last ${periodDays()} days</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Work Order Status</h2><p class="desc">Open workload distribution across the maintenance workflow.</p>${barChart(openByStatus)}</div>
+    <div class="card"><h2>Overall Health</h2>
+      <div class="grid g2" style="align-items:center">
+        <div>${donut(Math.round(k.avail),k.avail>=95?'#1E8449':k.avail>=85?'#E67E22':'#C0392B','availability')}</div>
+        <div>${donut(k.pmCompliance,k.pmCompliance>=90?'#1E8449':k.pmCompliance>=70?'#E67E22':'#C0392B','PM compliance')}</div>
+      </div>
+      <div class="legend"><span><span class="dot" style="background:#1E8449"></span>Healthy target ≥ 95% / 90%</span></div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Downtime by Asset (hours)</h2><p class="desc">Total recorded breakdown duration in the last ${periodDays()} days.</p>${barChart(dtRows)}</div>
+    <div class="card"><h2>PM Due — Next 3 Days</h2>
+      <table><tr><th>Code</th><th>Asset</th><th>Plan</th><th>Due</th><th>Tech</th></tr>
+      ${dueSoon.map(p=>`<tr><td><b>${esc(p.code)}</b></td><td>${esc(asset(p.assetId).name)}</td><td>${esc(p.title)}</td>
+        <td>${badge(fmt(p.nextDue), p.nextDue<=today()?'b-red':'b-orange')}</td><td>${esc(tech(p.assigneeId).name)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Nothing due soon.</td></tr>'}</table></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Attention — Overdue Work Orders</h2>
+      <table><tr><th>Code</th><th>Task</th><th>Asset</th><th>Pri</th><th>Due</th><th></th></tr>
+      ${overdueList.slice(0,8).map(w=>`<tr><td><b>${esc(w.code)}</b></td><td>${esc(w.title)}</td><td class="small">${esc(asset(w.assetId).name)}</td>
+        <td>${badge(w.priority,PRIO_COLOR[w.priority])}</td><td class="small">${fmt(w.dueDate)}</td>
+        <td><button class="btn sm ghost" onclick="openWO('${w.id}')">Open</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No overdue work orders.</td></tr>'}</table></div>
+    <div class="card"><h2>Recent Work Orders</h2>
+      <table><tr><th>Code</th><th>Task</th><th>Status</th><th>Created</th><th></th></tr>
+      ${recent.map(w=>`<tr><td><b>${esc(w.code)}</b></td><td>${esc(w.title)}</td><td>${badge(w.status,STATUS_COLOR[w.status])}</td>
+        <td class="small">${fmt(w.createdDate)}</td><td><button class="btn sm ghost" onclick="openWO('${w.id}')">Open</button></td></tr>`).join('')}</table></div>
+  </div>`;
+}
+
+/* ------------------------------- assets --------------------------------- */
+function assetsView(){
+  const rows=DB.assets.map(a=>{
+    const openWOs=DB.workOrders.filter(w=>w.assetId===a.id&&isOpen(w)).length;
+    return `<tr class="crit-${a.criticality}"><td><b>${esc(a.code)}</b></td><td>${esc(a.name)}<div class="small muted">${esc(a.category)} · ${esc(a.location)}</div></td>
+      <td>${badge(a.criticality+'-Critical', a.criticality==='A'?'b-red':a.criticality==='B'?'b-orange':'b-grey')}</td>
+      <td>${badge(a.status,ASSET_COLOR[a.status])}</td>
+      <td>${esc(a.manufacturer||'—')}<div class="small muted">${esc(a.model||'')}</div></td>
+      <td>${openWOs}</td><td class="small">${fmt(a.installDate)}</td>
+      <td><button class="btn sm ghost" onclick="openAssetForm('${a.id}')">Edit</button>
+          <button class="btn sm ghost" onclick="openWOForm('', '${a.id}')">+ WO</button>
+          <button class="btn sm red" onclick="delAsset('${a.id}')">Del</button></td></tr>`;
+  }).join('');
+  return `<div class="card"><div class="row" style="justify-content:space-between"><div>
+      <h2>Asset Register</h2><p class="desc">Equipment master with criticality, location and status.</p></div>
+      <button class="btn" onclick="openAssetForm('')">+ Add Asset</button></div>
+    <table><thead><tr><th>Code</th><th>Asset</th><th>Criticality</th><th>Status</th><th>Make / Model</th><th>Open WO</th><th>Installed</th><th>Actions</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="8" class="empty">No assets.</td></tr>'}</tbody></table></div>`;
+}
+function openAssetForm(id){
+  const a=id?DB.assets.find(x=>x.id===id):{code:'',name:'',category:'Production',location:'',manufacturer:'',model:'',serial:'',criticality:'B',status:'Running',installDate:today(),department:'Mechanical'};
+  modal(`<h2>${id?'Edit':'Add'} Asset</h2>
+    <div class="row"><div class="field" style="flex:1;min-width:150px"><label>Asset Code</label><input id="f_code" value="${esc(a.code)}"></div>
+      <div class="field" style="flex:2;min-width:220px"><label>Asset Name</label><input id="f_name" value="${esc(a.name)}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Category</label><select id="f_cat">${['Production','Packer','Power Plant','Utility','Dispatch','Electrical','Civil'].map(x=>`<option ${a.category===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Location</label><input id="f_loc" value="${esc(a.location)}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Manufacturer</label><input id="f_make" value="${esc(a.manufacturer||'')}"></div>
+      <div class="field" style="flex:1"><label>Model</label><input id="f_model" value="${esc(a.model||'')}"></div>
+      <div class="field" style="flex:1"><label>Serial No.</label><input id="f_serial" value="${esc(a.serial||'')}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Criticality</label><select id="f_crit">${CRIT.map(c=>`<option ${a.criticality===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Status</label><select id="f_status">${ASSET_STATUS.map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Department</label><select id="f_dept">${['Mechanical','Electrical','Instrumentation','Civil'].map(s=>`<option ${a.department===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Install Date</label><input type="date" id="f_inst" value="${esc(a.installDate||'')}"></div></div>
+    <div style="margin-top:12px"><button class="btn" onclick="saveAsset('${id}')">Save</button> <button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+function saveAsset(id){
+  const o={code:$('f_code').value.trim(),name:$('f_name').value.trim(),category:$('f_cat').value,location:$('f_loc').value.trim(),
+    manufacturer:$('f_make').value.trim(),model:$('f_model').value.trim(),serial:$('f_serial').value.trim(),
+    criticality:$('f_crit').value,status:$('f_status').value,department:$('f_dept').value,installDate:$('f_inst').value};
+  if(!o.code||!o.name){toast('Asset code and name are required.');return;}
+  if(id){Object.assign(DB.assets.find(x=>x.id===id),o);}else{DB.assets.push(Object.assign({id:uid('a')},o));}
+  save();closeModal();render();toast('Asset saved.');
+}
+function delAsset(id){
+  if(!confirm('Delete this asset? Related work orders and PM plans will remain but show "—".'))return;
+  DB.assets=DB.assets.filter(a=>a.id!==id);save();render();toast('Asset deleted.');
+}
+
+/* ---------------------------- work orders ------------------------------- */
+let woFilter='All', woSearch='';
+function workOrdersView(){
+  let list=DB.workOrders.slice().sort((a,b)=>b.createdDate.localeCompare(a.createdDate));
+  if(woFilter!=='All')list=list.filter(w=>w.status===woFilter);
+  if(woSearch){const q=woSearch.toLowerCase();list=list.filter(w=>(w.code+' '+w.title+' '+asset(w.assetId).name).toLowerCase().includes(q));}
+  const rows=list.map(w=>`<tr>
+    <td><b>${esc(w.code)}</b></td>
+    <td>${esc(w.title)}<div class="small muted">${esc(asset(w.assetId).name)}</div></td>
+    <td>${badge(w.type,TYPE_COLOR[w.type])}</td>
+    <td>${badge(w.priority,PRIO_COLOR[w.priority])}</td>
+    <td>${badge(w.status,STATUS_COLOR[w.status])}</td>
+    <td class="small">${esc(tech(w.assigneeId).name)}</td>
+    <td class="small">${fmt(w.dueDate)} ${isOverdue(w)?badge('late','b-red'):''}</td>
+    <td class="small">${w.actualHours||0} / ${w.estHours||0} h</td>
+    <td><button class="btn sm ghost" onclick="openWO('${w.id}')">Open</button>
+        <button class="btn sm ghost" onclick="openWOForm('${w.id}')">Edit</button>
+        <button class="btn sm red" onclick="delWO('${w.id}')">Del</button></td></tr>`).join('');
+  const filterBtns=['All'].concat(WO_STATUS).map(s=>`<button class="btn sm ${woFilter===s?'':'ghost'}" onclick="woFilter='${s}';render()">${s}${s==='All'?'':' ('+DB.workOrders.filter(w=>w.status===s).length+')'}</button>`).join(' ');
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between"><div><h2>Work Orders</h2><p class="desc">Corrective, preventive, predictive, inspection and emergency jobs.</p></div>
+      <button class="btn" onclick="openWOForm('')">+ New Work Order</button></div>
+    <div class="row" style="margin-bottom:10px">${filterBtns}
+      <div class="field" style="min-width:220px;margin:0 0 0 auto"><input placeholder="Search code, task, asset…" value="${esc(woSearch)}" oninput="woSearch=this.value;render()"></div></div>
+    <table><thead><tr><th>Code</th><th>Task</th><th>Type</th><th>Priority</th><th>Status</th><th>Technician</th><th>Due</th><th>Hrs A/E</th><th>Actions</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="9" class="empty">No work orders match.</td></tr>'}</tbody></table></div>`;
+}
+function openWOForm(id, presetAssetId){
+  const w=id?DB.workOrders.find(x=>x.id===id):{code:'WO-'+String(DB.seq.wo).padStart(4,'0'),title:'',assetId:presetAssetId||(DB.assets[0]?DB.assets[0].id:''),type:'Corrective',priority:'Medium',status:'Open',assigneeId:'',reportedBy:'Operations',description:'',createdDate:today(),dueDate:dstr(2),completedDate:'',estHours:2,actualHours:0,downtimeMins:0,partsCost:0,laborCost:0};
+  const opt=(arr,sel)=>arr.map(x=>`<option ${sel===x?'selected':''}>${x}</option>`).join('');
+  modal(`<h2>${id?'Edit':'New'} Work Order</h2>
+    <div class="row"><div class="field" style="flex:0 0 150px"><label>WO Code</label><input id="f_code" value="${esc(w.code)}"></div>
+      <div class="field" style="flex:1;min-width:220px"><label>Title</label><input id="f_title" value="${esc(w.title)}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Asset</label><select id="f_asset">${DB.assets.map(a=>`<option value="${a.id}" ${w.assetId===a.id?'selected':''}>${esc(a.code+' · '+a.name)}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Technician</label><select id="f_tech"><option value="">— Unassigned —</option>${DB.techs.map(t=>`<option value="${t.id}" ${w.assigneeId===t.id?'selected':''}>${esc(t.name)} (${esc(t.trade)})</option>`).join('')}</select></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Type</label><select id="f_type">${opt(WO_TYPES,w.type)}</select></div>
+      <div class="field" style="flex:1"><label>Priority</label><select id="f_prio">${opt(WO_PRIORITY,w.priority)}</select></div>
+      <div class="field" style="flex:1"><label>Status</label><select id="f_status">${opt(WO_STATUS,w.status)}</select></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Created</label><input type="date" id="f_created" value="${esc(w.createdDate)}"></div>
+      <div class="field" style="flex:1"><label>Due</label><input type="date" id="f_due" value="${esc(w.dueDate)}"></div>
+      <div class="field" style="flex:1"><label>Completed</label><input type="date" id="f_done" value="${esc(w.completedDate)}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Est. Hours</label><input type="number" step="0.5" id="f_est" value="${w.estHours}"></div>
+      <div class="field" style="flex:1"><label>Actual Hours</label><input type="number" step="0.5" id="f_act" value="${w.actualHours}"></div>
+      <div class="field" style="flex:1"><label>Downtime (min)</label><input type="number" id="f_dt" value="${w.downtimeMins}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Parts Cost</label><input type="number" id="f_parts" value="${w.partsCost}"></div>
+      <div class="field" style="flex:1"><label>Labor Cost</label><input type="number" id="f_labor" value="${w.laborCost}"></div></div>
+    <div class="field"><label>Description / Notes</label><textarea id="f_desc">${esc(w.description)}</textarea></div>
+    <div style="margin-top:12px"><button class="btn" onclick="saveWO('${id}')">Save</button> <button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+function saveWO(id){
+  const o={code:$('f_code').value.trim(),title:$('f_title').value.trim(),assetId:$('f_asset').value,type:$('f_type').value,
+    priority:$('f_prio').value,status:$('f_status').value,assigneeId:$('f_tech').value,createdDate:$('f_created').value,
+    dueDate:$('f_due').value,completedDate:$('f_done').value,estHours:+$('f_est').value||0,actualHours:+$('f_act').value||0,
+    downtimeMins:+$('f_dt').value||0,partsCost:+$('f_parts').value||0,laborCost:+$('f_labor').value||0,description:$('f_desc').value.trim()};
+  if(!o.code||!o.title){toast('Code and title are required.');return;}
+  if(o.status==='Completed'||o.status==='Closed'){if(!o.completedDate)o.completedDate=today();}else{o.completedDate='';}
+  if(id){Object.assign(DB.workOrders.find(x=>x.id===id),o);}
+  else{o.reportedBy=$('f_labor')?'Operations':'Operations';DB.workOrders.push(Object.assign({id:uid('w'),reportedBy:'Operations'},o));DB.seq.wo++;}
+  save();closeModal();render();toast('Work order saved.');
+}
+function openWO(id){const w=DB.workOrders.find(x=>x.id===id);if(!w)return;
+  modal(`<h2>${esc(w.code)} — ${esc(w.title)}</h2>
+    <div class="row"><span class="pill">Asset: ${esc(asset(w.assetId).name)}</span><span class="pill">Type: ${esc(w.type)}</span>
+      <span class="pill">Priority: ${esc(w.priority)}</span><span class="pill">Status: ${esc(w.status)}</span></div>
+    <table style="margin:8px 0"><tr><th>Technician</th><td>${esc(tech(w.assigneeId).name)}</td><th>Created</th><td>${fmt(w.createdDate)}</td></tr>
+      <tr><th>Due</th><td>${fmt(w.dueDate)}</td><th>Completed</th><td>${fmt(w.completedDate)}</td></tr>
+      <tr><th>Est / Actual</th><td>${w.estHours} / ${w.actualHours} h</td><th>Downtime</th><td>${w.downtimeMins} min</td></tr>
+      <tr><th>Parts / Labor cost</th><td colspan="3">${money(w.partsCost)} / ${money(w.laborCost)}</td></tr></table>
+    <p class="small muted">${esc(w.description||'No notes.')}</p>
+    <div class="row" style="margin-top:10px">${WO_STATUS.map(s=>`<button class="btn sm ${s===w.status?'':'ghost'}" onclick="setWOStatus('${w.id}','${s}')">${s}</button>`).join('')}</div>
+    <div style="margin-top:12px"><button class="btn ghost" onclick="openWOForm('${w.id}')">Edit</button> <button class="btn ghost" onclick="closeModal()">Close</button></div>`);
+}
+function setWOStatus(id,status){const w=DB.workOrders.find(x=>x.id===id);w.status=status;if(status==='Completed'||status==='Closed'){if(!w.completedDate)w.completedDate=today();}save();closeModal();render();toast('Status → '+status);}
+function delWO(id){if(!confirm('Delete this work order?'))return;DB.workOrders=DB.workOrders.filter(w=>w.id!==id);save();render();toast('Work order deleted.');}
+
+/* --------------------------- preventive maint. -------------------------- */
+function pmView(){
+  const rows=DB.pmPlans.slice().sort((a,b)=>a.nextDue.localeCompare(b.nextDue)).map(p=>{
+    const due=p.nextDue<=today();
+    return `<tr><td><b>${esc(p.code)}</b></td><td>${esc(asset(p.assetId).name)}</td><td>${esc(p.title)}</td>
+      <td>${esc(p.frequency)}</td><td class="small">${fmt(p.lastDone)}</td>
+      <td>${badge(fmt(p.nextDue),due?'b-red':(p.nextDue<=dstr(7)?'b-orange':'b-green'))}</td>
+      <td>${esc(tech(p.assigneeId).name)}</td>
+      <td>${p.active?badge('Active','b-green'):badge('Paused','b-grey')}</td>
+      <td><button class="btn sm ghost" onclick="genFromPM('${p.id}')">Generate WO</button>
+          <button class="btn sm ghost" onclick="openPMForm('${p.id}')">Edit</button>
+          <button class="btn sm red" onclick="delPM('${p.id}')">Del</button></td></tr>`;
+  }).join('');
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between"><div><h2>Preventive Maintenance Schedule</h2>
+      <p class="desc">Recurring maintenance plans. Generating a work order advances the next due date automatically.</p></div>
+      <div><button class="btn green" onclick="generateAllDue()">Generate all due</button> <button class="btn" onclick="openPMForm('')">+ New Plan</button></div></div>
+    <table><thead><tr><th>Code</th><th>Asset</th><th>Plan</th><th>Frequency</th><th>Last Done</th><th>Next Due</th><th>Technician</th><th>State</th><th>Actions</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="9" class="empty">No PM plans.</td></tr>'}</tbody></table></div>`;
+}
+function openPMForm(id){
+  const p=id?DB.pmPlans.find(x=>x.id===id):{code:'PM-'+String(DB.seq.pm).padStart(3,'0'),assetId:DB.assets[0]?DB.assets[0].id:'',title:'',frequency:'Monthly',lastDone:today(),nextDue:addFreq(today(),'Monthly'),estHours:4,assigneeId:'',active:true,tasks:''};
+  modal(`<h2>${id?'Edit':'New'} PM Plan</h2>
+    <div class="row"><div class="field" style="flex:0 0 130px"><label>Code</label><input id="f_code" value="${esc(p.code)}"></div>
+      <div class="field" style="flex:1;min-width:220px"><label>Plan Title</label><input id="f_title" value="${esc(p.title)}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Asset</label><select id="f_asset">${DB.assets.map(a=>`<option value="${a.id}" ${p.assetId===a.id?'selected':''}>${esc(a.code+' · '+a.name)}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Frequency</label><select id="f_freq">${PM_FREQ.map(f=>`<option ${p.frequency===f?'selected':''}>${f}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Technician</label><select id="f_tech"><option value="">— Unassigned —</option>${DB.techs.map(t=>`<option value="${t.id}" ${p.assigneeId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Last Done</label><input type="date" id="f_last" value="${esc(p.lastDone)}"></div>
+      <div class="field" style="flex:1"><label>Next Due</label><input type="date" id="f_next" value="${esc(p.nextDue)}"></div>
+      <div class="field" style="flex:1"><label>Est. Hours</label><input type="number" step="0.5" id="f_est" value="${p.estHours}"></div>
+      <div class="field" style="flex:1"><label>Active</label><select id="f_active"><option value="true" ${p.active?'selected':''}>Yes</option><option value="false" ${!p.active?'selected':''}>Paused</option></select></div></div>
+    <div class="field"><label>Checklist / Tasks</label><textarea id="f_tasks">${esc(p.tasks||'')}</textarea></div>
+    <div style="margin-top:12px"><button class="btn" onclick="savePM('${id}')">Save</button> <button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+function savePM(id){
+  const o={code:$('f_code').value.trim(),title:$('f_title').value.trim(),assetId:$('f_asset').value,frequency:$('f_freq').value,
+    assigneeId:$('f_tech').value,lastDone:$('f_last').value,nextDue:$('f_next').value,estHours:+$('f_est').value||0,
+    active:$('f_active').value==='true',tasks:$('f_tasks').value.trim()};
+  if(!o.code||!o.title){toast('Code and title are required.');return;}
+  if(id)Object.assign(DB.pmPlans.find(x=>x.id===id),o);else DB.pmPlans.push(Object.assign({id:uid('p')},o));
+  save();closeModal();render();toast('PM plan saved.');
+}
+function delPM(id){if(!confirm('Delete this PM plan?'))return;DB.pmPlans=DB.pmPlans.filter(p=>p.id!==id);save();render();toast('PM plan deleted.');}
+function genFromPM(id){
+  const p=DB.pmPlans.find(x=>x.id===id);if(!p)return;
+  const code='WO-'+String(DB.seq.wo++).padStart(4,'0');
+  DB.workOrders.push({id:uid('w'),code:code,title:p.title,assetId:p.assetId,type:'Preventive',priority:'Medium',
+    status:'Assigned',assigneeId:p.assigneeId,reportedBy:'PM Scheduler',description:p.tasks||'',createdDate:today(),
+    dueDate:p.nextDue<=today()?p.nextDue:dstr(3),completedDate:'',estHours:p.estHours,actualHours:0,downtimeMins:0,partsCost:0,laborCost:0});
+  p.lastDone=addFreq(p.lastDone,p.frequency);p.nextDue=addFreq(p.nextDue,p.frequency);
+  save();render();toast('Work order '+code+' generated from '+p.code+'.');
+}
+function generateAllDue(){
+  const due=DB.pmPlans.filter(p=>p.active&&p.nextDue<=today());
+  if(!due.length){toast('No PM plans are due.');return;}
+  due.forEach(p=>{const code='WO-'+String(DB.seq.wo++).padStart(4,'0');
+    DB.workOrders.push({id:uid('w'),code:code,title:p.title,assetId:p.assetId,type:'Preventive',priority:'Medium',status:'Assigned',assigneeId:p.assigneeId,reportedBy:'PM Scheduler',description:p.tasks||'',createdDate:today(),dueDate:p.nextDue,completedDate:'',estHours:p.estHours,actualHours:0,downtimeMins:0,partsCost:0,laborCost:0});
+    p.lastDone=addFreq(p.lastDone,p.frequency);p.nextDue=addFreq(p.nextDue,p.frequency);});
+  save();render();toast(due.length+' work order(s) generated.');
+}
+
+/* ----------------------------- breakdowns ------------------------------- */
+function breakdownsView(){
+  const rows=DB.breakdowns.slice().sort((a,b)=>(b.startTs||0)-(a.startTs||0)).map(b=>`<tr>
+    <td>${esc(asset(b.assetId).name)}</td>
+    <td class="small">${new Date(b.startTs).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+    <td>${b.endTs?new Date(b.endTs).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):badge('Open','b-red')}</td>
+    <td>${b.mins?badge((b.mins/60).toFixed(1)+' h','b-orange'):'—'}</td>
+    <td>${esc(b.category||'—')}</td><td>${esc(b.cause)}</td><td class="small">${esc(b.action||'—')}</td>
+    <td><button class="btn sm red" onclick="delBreakdown('${b.id}')">Del</button></td></tr>`).join('');
+  const totalHrs=DB.breakdowns.reduce((s,b)=>s+(+b.mins||0),0)/60;
+  return `<div class="grid g3" style="margin-bottom:16px">
+      <div class="kpi"><div class="v">${DB.breakdowns.length}</div><div class="l">Breakdown Events</div></div>
+      <div class="kpi"><div class="v">${totalHrs.toFixed(1)} h</div><div class="l">Total Downtime</div></div>
+      <div class="kpi"><div class="v">${kpis().mttr.toFixed(1)} h</div><div class="l">MTTR</div></div></div>
+    <div class="card"><div class="row" style="justify-content:space-between"><div><h2>Breakdown / Downtime Log</h2>
+      <p class="desc">Failure history driving MTTR and availability.</p></div>
+      <button class="btn" onclick="openBreakdownForm()">+ Log Breakdown</button></div>
+    <table><thead><tr><th>Asset</th><th>Start</th><th>End</th><th>Duration</th><th>Category</th><th>Cause</th><th>Action</th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="8" class="empty">No breakdowns logged.</td></tr>'}</tbody></table></div>`;
+}
+function openBreakdownForm(){
+  modal(`<h2>Log Breakdown</h2>
+    <div class="field"><label>Asset</label><select id="f_asset">${DB.assets.map(a=>`<option value="${a.id}">${esc(a.code+' · '+a.name)}</option>`).join('')}</select></div>
+    <div class="row"><div class="field" style="flex:1"><label>Category</label><select id="f_cat">${TRADES.concat(['Lubrication','Operations']).map(t=>`<option>${t}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Duration (minutes)</label><input type="number" id="f_mins" value="60"></div></div>
+    <div class="field"><label>Cause</label><input id="f_cause" placeholder="Root cause / symptom"></div>
+    <div class="field"><label>Action Taken</label><input id="f_action" placeholder="Corrective action"></div>
+    <div style="margin-top:12px"><button class="btn" onclick="saveBreakdown()">Save</button> <button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+function saveBreakdown(){
+  const mins=+$('f_mins').value||0;const start=Date.now();
+  DB.breakdowns.push({id:uid('b'),assetId:$('f_asset').value,startTs:start-mins*60000,endTs:start,mins:mins,
+    cause:$('f_cause').value.trim()||'—',action:$('f_action').value.trim()||'—',category:$('f_cat').value,workOrderId:''});
+  const a=DB.assets.find(x=>x.id===$('f_asset').value);if(a)a.status='Running';
+  save();closeModal();render();toast('Breakdown logged.');
+}
+function delBreakdown(id){if(!confirm('Delete this breakdown record?'))return;DB.breakdowns=DB.breakdowns.filter(b=>b.id!==id);save();render();toast('Deleted.');}
+
+/* ------------------------------- parts ---------------------------------- */
+function partsView(){
+  const rows=DB.parts.map(p=>{const low=p.stock<=p.minStock;
+    return `<tr><td><b>${esc(p.code)}</b></td><td>${esc(p.name)}<div class="small muted">${esc(p.category)}</div></td>
+      <td>${esc(p.location||'—')}</td>
+      <td>${badge(p.stock+' '+esc(p.uom),low?'b-red':'b-green')}</td><td>${p.minStock}</td>
+      <td>${money(p.unitCost)}</td><td>${money(p.stock*p.unitCost)}</td>
+      <td><button class="btn sm ghost" onclick="adjPart('${p.id}',1)">+</button>
+          <button class="btn sm ghost" onclick="adjPart('${p.id}',-1)">−</button>
+          <button class="btn sm ghost" onclick="openPartForm('${p.id}')">Edit</button>
+          <button class="btn sm red" onclick="delPart('${p.id}')">Del</button></td></tr>`;}).join('');
+  const lowCount=DB.parts.filter(p=>p.stock<=p.minStock).length;
+  const value=DB.parts.reduce((s,p)=>s+p.stock*p.unitCost,0);
+  return `<div class="grid g3" style="margin-bottom:16px">
+      <div class="kpi"><div class="v">${DB.parts.length}</div><div class="l">Part Numbers</div></div>
+      <div class="kpi"><div class="v" style="color:${lowCount?'#C0392B':'#1E8449'}">${lowCount}</div><div class="l">Below Min Stock</div></div>
+      <div class="kpi"><div class="v">${money(value)}</div><div class="l">Stock Value</div></div></div>
+    <div class="card"><div class="row" style="justify-content:space-between"><div><h2>Spare Parts / Store</h2>
+      <p class="desc">Inventory with re-order alerting and valuation.</p></div>
+      <button class="btn" onclick="openPartForm('')">+ Add Part</button></div>
+    <table><thead><tr><th>Code</th><th>Description</th><th>Location</th><th>On Hand</th><th>Min</th><th>Unit Cost</th><th>Value</th><th>Actions</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="8" class="empty">No parts.</td></tr>'}</tbody></table></div>`;
+}
+function openPartForm(id){
+  const p=id?DB.parts.find(x=>x.id===id):{code:'SP-'+String(DB.seq.part).padStart(3,'0'),name:'',category:'Bearings',uom:'Nos',stock:0,minStock:1,unitCost:0,location:''};
+  modal(`<h2>${id?'Edit':'Add'} Spare Part</h2>
+    <div class="row"><div class="field" style="flex:0 0 130px"><label>Code</label><input id="f_code" value="${esc(p.code)}"></div>
+      <div class="field" style="flex:1;min-width:220px"><label>Description</label><input id="f_name" value="${esc(p.name)}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Category</label><input id="f_cat" value="${esc(p.category)}"></div>
+      <div class="field" style="flex:1"><label>UoM</label><select id="f_uom">${['Nos','Litre','Kg','Metre','Set'].map(u=>`<option ${p.uom===u?'selected':''}>${u}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Location</label><input id="f_loc" value="${esc(p.location)}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Stock</label><input type="number" id="f_stock" value="${p.stock}"></div>
+      <div class="field" style="flex:1"><label>Min Stock</label><input type="number" id="f_min" value="${p.minStock}"></div>
+      <div class="field" style="flex:1"><label>Unit Cost</label><input type="number" id="f_cost" value="${p.unitCost}"></div></div>
+    <div style="margin-top:12px"><button class="btn" onclick="savePart('${id}')">Save</button> <button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+function savePart(id){
+  const o={code:$('f_code').value.trim(),name:$('f_name').value.trim(),category:$('f_cat').value.trim(),uom:$('f_uom').value,
+    location:$('f_loc').value.trim(),stock:+$('f_stock').value||0,minStock:+$('f_min').value||0,unitCost:+$('f_cost').value||0};
+  if(!o.code||!o.name){toast('Code and description are required.');return;}
+  if(id)Object.assign(DB.parts.find(x=>x.id===id),o);else DB.parts.push(Object.assign({id:uid('s')},o));
+  save();closeModal();render();toast('Part saved.');
+}
+function adjPart(id,d){const p=DB.parts.find(x=>x.id===id);p.stock=Math.max(0,p.stock+d);save();render();}
+function delPart(id){if(!confirm('Delete this part?'))return;DB.parts=DB.parts.filter(p=>p.id!==id);save();render();toast('Part deleted.');}
+
+/* ---------------------------- technicians ------------------------------- */
+function techsView(){
+  const rows=DB.techs.map(t=>{
+    const wos=DB.workOrders.filter(w=>w.assigneeId===t.id);
+    const open=wos.filter(isOpen).length;
+    const pm=DB.pmPlans.filter(p=>p.assigneeId===t.id&&p.active).length;
+    const hrs=wos.reduce((s,w)=>s+(+w.actualHours||0),0);
+    return `<tr><td><b>${esc(t.code)}</b></td><td>${esc(t.name)}</td><td>${badge(t.trade,'b-blue')}</td>
+      <td>${esc(t.shift)}</td><td class="small">${esc(t.phone||'—')}</td><td>${open} / ${wos.length}</td><td>${pm}</td><td>${hrs.toFixed(1)} h</td>
+      <td><button class="btn sm ghost" onclick="openTechForm('${t.id}')">Edit</button>
+          <button class="btn sm red" onclick="delTech('${t.id}')">Del</button></td></tr>`;}).join('');
+  return `<div class="card"><div class="row" style="justify-content:space-between"><div><h2>Technicians & Workload</h2>
+      <p class="desc">Maintenance workforce and their current assignment load.</p></div>
+      <button class="btn" onclick="openTechForm('')">+ Add Technician</button></div>
+    <table><thead><tr><th>Code</th><th>Name</th><th>Trade</th><th>Shift</th><th>Phone</th><th>Open/Total WO</th><th>PM Plans</th><th>Hours</th><th>Actions</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="9" class="empty">No technicians.</td></tr>'}</tbody></table></div>`;
+}
+function openTechForm(id){
+  const t=id?DB.techs.find(x=>x.id===id):{code:'TEC-'+String(DB.seq.tech).padStart(3,'0'),name:'',trade:'Mechanical',shift:'General',phone:'',active:true};
+  modal(`<h2>${id?'Edit':'Add'} Technician</h2>
+    <div class="row"><div class="field" style="flex:0 0 130px"><label>Code</label><input id="f_code" value="${esc(t.code)}"></div>
+      <div class="field" style="flex:1"><label>Name</label><input id="f_name" value="${esc(t.name)}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label>Trade</label><select id="f_trade">${TRADES.map(x=>`<option ${t.trade===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Shift</label><select id="f_shift">${SHIFTS.map(x=>`<option ${t.shift===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field" style="flex:1"><label>Phone</label><input id="f_phone" value="${esc(t.phone||'')}"></div></div>
+    <div style="margin-top:12px"><button class="btn" onclick="saveTech('${id}')">Save</button> <button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+function saveTech(id){
+  const o={code:$('f_code').value.trim(),name:$('f_name').value.trim(),trade:$('f_trade').value,shift:$('f_shift').value,phone:$('f_phone').value.trim(),active:true};
+  if(!o.code||!o.name){toast('Code and name are required.');return;}
+  if(id)Object.assign(DB.techs.find(x=>x.id===id),o);else DB.techs.push(Object.assign({id:uid('t')},o));
+  save();closeModal();render();toast('Technician saved.');
+}
+function delTech(id){if(!confirm('Delete this technician? Their work orders become unassigned.'))return;DB.techs=DB.techs.filter(t=>t.id!==id);DB.workOrders.forEach(w=>{if(w.assigneeId===id)w.assigneeId='';});save();render();toast('Technician deleted.');}
+
+/* ------------------------------- reports -------------------------------- */
+function reportsView(){
+  const k=kpis();
+  const byType=WO_TYPES.map(t=>({label:t,value:DB.workOrders.filter(w=>w.type===t).length,color:'#2E86C1'})).filter(r=>r.value);
+  const byTech=DB.techs.map(t=>{const wos=DB.workOrders.filter(w=>w.assigneeId===t.id);
+    return {label:t.name,value:wos.filter(w=>w.status==='Completed'||w.status==='Closed').length,color:'#1E8449'};}).filter(r=>r.value).sort((a,b)=>b.value-a.value);
+  const costByAsset={};
+  DB.workOrders.forEach(w=>{costByAsset[w.assetId]=(costByAsset[w.assetId]||0)+(+w.partsCost||0)+(+w.laborCost||0);});
+  const costRows=Object.keys(costByAsset).map(id=>({label:asset(id).name,value:Math.round(costByAsset[id]),color:'#E67E22'})).sort((a,b)=>b.value-a.value).slice(0,8);
+  const dtByAsset={};
+  DB.breakdowns.forEach(b=>{dtByAsset[b.assetId]=(dtByAsset[b.assetId]||0)+(+b.mins||0);});
+  const dtRows=Object.keys(dtByAsset).map(id=>({label:asset(id).name,value:Math.round(dtByAsset[id]/60*10)/10,color:'#C0392B'})).sort((a,b)=>b.value-a.value).slice(0,8);
+  const periodHrs=periodDays()*DB.settings.plantHoursPerDay;
+  return `
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="kpi"><div class="v">${k.avail.toFixed(1)}%</div><div class="l">Availability</div><div class="s">target ≥ 95%</div></div>
+    <div class="kpi"><div class="v">${k.mttr.toFixed(1)} h</div><div class="l">MTTR</div><div class="s">mean time to repair</div></div>
+    <div class="kpi"><div class="v">${k.mtbf.toFixed(0)} h</div><div class="l">MTBF</div><div class="s">mean time between failures</div></div>
+    <div class="kpi"><div class="v" style="color:${k.pmCompliance>=90?'#1E8449':'#E67E22'}">${k.pmCompliance}%</div><div class="l">PM Compliance</div></div>
+  </div>
+  <div class="card"><h2>Maintenance KPIs</h2><p class="desc">Computed from the last ${periodDays()} days of work orders and breakdown events.</p>
+    <table><thead><tr><th>Indicator</th><th>Value</th><th>Basis</th></tr></thead><tbody>
+      <tr><td>Availability</td><td><b>${k.avail.toFixed(2)}%</b></td><td class="small">(${periodHrs} h − downtime) ÷ ${periodHrs} h</td></tr>
+      <tr><td>MTTR</td><td><b>${k.mttr.toFixed(2)} h</b></td><td class="small">total breakdown minutes ÷ failures (${DB.breakdowns.length})</td></tr>
+      <tr><td>MTBF</td><td><b>${k.mtbf.toFixed(1)} h</b></td><td class="small">operating hours ÷ failures</td></tr>
+      <tr><td>PM Compliance</td><td><b>${k.pmCompliance}%</b></td><td class="small">completed PM work orders ÷ total PM work orders</td></tr>
+      <tr><td>Open Work Orders</td><td><b>${k.open}</b></td><td class="small">${k.overdue} overdue</td></tr>
+      <tr><td>Maintenance Cost</td><td><b>${money(k.cost)}</b></td><td class="small">parts + labour across all work orders</td></tr>
+      <tr><td>Assets down</td><td><b>${k.down}</b></td><td class="small">of ${k.assets} registered assets</td></tr>
+    </tbody></table></div>
+  <div class="grid g2">
+    <div class="card"><h2>Work Orders by Type</h2>${barChart(byType)}</div>
+    <div class="card"><h2>Completed by Technician</h2>${barChart(byTech)}</div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Downtime by Asset (hours)</h2>${barChart(dtRows)}</div>
+    <div class="card"><h2>Maintenance Cost by Asset</h2>${barChart(costRows)}</div>
+  </div>`;
+}
+
+/* ------------------------------- modal ---------------------------------- */
+function modal(html){$('modal').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">'+html+'</div></div>';}
+function closeModal(){$('modal').innerHTML='';}
+
+/* ------------------------------- init ----------------------------------- */
+load();
+render();
+</script>
+</body>
+</html>
